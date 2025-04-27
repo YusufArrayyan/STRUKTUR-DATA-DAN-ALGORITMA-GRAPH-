@@ -1,0 +1,83 @@
+#include <iostream>
+#include <unordered_map>
+#include <vector>
+#include <stack>
+#include <string>
+#include <climits>
+using namespace std;
+
+unordered_map<string, vector<pair<string, int>>> lokasiUtbk = {
+    {"Gerbang Masuk", {{"LPTIK", 1}}},
+    {"LPTIK", {{"Gerbang Masuk", 1}, {"LAB FKIP", 1}, {"Danau Unib", 7}, {"Fisip", 4}}},
+    {"LAB FKIP", {{"LPTIK", 1}, {"LAB SI", 5}}},
+    {"LAB SI", {{"LAB FKIP", 5}, {"Stadion", 2}}},
+    {"Stadion", {{"LAB SI", 2}, {"FKIK", 4}}},
+    {"FKIK", {{"Stadion", 4}, {"Perpustakaan", 8}}},
+    {"Perpustakaan", {{"FKIK", 8}, {"Danau Unib", 5}}},
+    {"Danau Unib", {{"Perpustakaan", 5}, {"GLT", 3}, {"LPTIK", 7}}},
+    {"GLT", {{"Danau Unib", 3}, {"LAB Komputer Hukum", 15}}},
+    {"LAB Komputer Hukum", {{"GLT", 15}, {"Masjid Darul Ulum", 3}, {"GOR UNIB", 2}, {"Gedung Rektorat", 8}}},
+    {"Masjid Darul Ulum", {{"LAB Komputer Hukum", 3}}},
+    {"GOR UNIB", {{"LAB Komputer Hukum", 2}}},
+    {"Gedung Rektorat", {{"LAB Komputer Hukum", 8}, {"Fisip", 2}, {"FEB", 7}}},
+    {"Fisip", {{"Gedung Rektorat", 2}, {"LPTIK", 4}}},
+    {"FEB", {{"Gedung Rektorat", 7}}}
+};
+
+void dfs_path(string mulai) {
+    unordered_map<string, int> jarak;
+    unordered_map<string, string> asal;
+    unordered_map<string, bool> seen;
+    stack<string> stk;
+
+    for (auto &n : lokasiUtbk) {
+        jarak[n.first] = INT_MAX;
+        seen[n.first] = false;
+    }
+
+    jarak[mulai] = 0;
+    stk.push(mulai);
+
+    while (!stk.empty()) {
+        string now = stk.top();
+        stk.pop();
+        if (seen[now]) continue;
+        seen[now] = true;
+
+        for (auto &e : lokasiUtbk[now]) {
+            string next = e.first;
+            int w = e.second;
+            if (jarak[now] + w < jarak[next]) {
+                jarak[next] = jarak[now] + w;
+                asal[next] = now;
+                stk.push(next);
+            }
+        }
+    }
+
+    cout << "Dari " << mulai << " ke semua titik:\n";
+    for (auto &p : lokasiUtbk) {
+        if (p.first == mulai) continue;
+        if (jarak[p.first] == INT_MAX) {
+            cout << p.first << " tidak terjangkau\n";
+            continue;
+        }
+        vector<string> jalan;
+        string temp = p.first;
+        while (temp != mulai) {
+            jalan.push_back(temp);
+            temp = asal[temp];
+        }
+        jalan.push_back(mulai);
+        for (auto it = jalan.rbegin(); it != jalan.rend(); ++it) {
+            cout << *it;
+            if (it + 1 != jalan.rend()) cout << " -> ";
+        }
+        cout << " (jarak " << jarak[p.first] << ")\n";
+    }
+}
+
+int main() {
+    dfs_path("Gerbang Masuk");
+    return 0;
+}

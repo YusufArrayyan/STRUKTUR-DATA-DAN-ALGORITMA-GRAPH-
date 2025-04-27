@@ -1,0 +1,95 @@
+#include <iostream>
+#include <queue>
+#include <unordered_map>
+#include <vector>
+#include <string>
+#include <climits>
+
+using namespace std;
+
+unordered_map<string, vector<pair<string, int>>> lokasiUtbk = {
+    {"Gerbang Masuk", { {"LPTIK", 1} }},
+    {"LPTIK", { {"Gerbang Masuk", 1}, {"LAB FKIP", 1}, {"Danau Unib", 2}, {"Fisip", 3} }},
+    {"LAB FKIP", { {"LPTIK", 1}, {"LAB SI", 5} }},
+    {"LAB SI", { {"LAB FKIP", 5}, {"Stadion", 2} }},
+    {"Stadion", { {"LAB SI", 2}, {"FKIK", 4} }},
+    {"FKIK", { {"Stadion", 4}, {"Perpustakaan", 3} }},
+    {"Perpustakaan", { {"FKIK", 3}, {"Danau Unib", 2} }},
+    {"Danau Unib", { {"Perpustakaan", 2}, {"GLT", 2}, {"LPTIK", 2} }},
+    {"GLT", { {"Danau Unib", 2}, {"LAB Komputer Hukum", 3} }},
+    {"LAB Komputer Hukum", { {"GLT", 3}, {"Masjid Darul Ulum", 1}, {"GOR UNIB", 1}, {"Gedung Rektorat", 3} }},
+    {"Masjid Darul Ulum", { {"LAB Komputer Hukum", 1} }},
+    {"GOR UNIB", { {"LAB Komputer Hukum", 1} }},
+    {"Gedung Rektorat", { {"LAB Komputer Hukum", 3}, {"Fisip", 2}, {"FEB", 2} }},
+    {"Fisip", { {"Gedung Rektorat", 2}, {"LPTIK", 3} }},
+    {"FEB", { {"Gedung Rektorat", 2} }}
+};
+
+void bfs(const string& mulai) {
+    unordered_map<string, int> jarak;
+    unordered_map<string, string> asal;
+    queue<string> antrian;
+
+    if (lokasiUtbk.empty()) {
+        cout << "Tidak ada jalur" << endl;
+        return;
+    }
+
+    for (auto& simpul : lokasiUtbk) {
+        jarak[simpul.first] = INT_MAX;
+    }
+
+    jarak[mulai] = 0;
+    antrian.push(mulai);
+
+    while (!antrian.empty()) {
+        string nodeSekarang = antrian.front();
+        antrian.pop();
+
+        for (auto& tetangga : lokasiUtbk[nodeSekarang]) {
+            string nextNode = tetangga.first;
+            int bobot = tetangga.second;
+
+            if (jarak[nodeSekarang] + bobot < jarak[nextNode]) {
+                jarak[nextNode] = jarak[nodeSekarang] + bobot;
+                asal[nextNode] = nodeSekarang;
+                antrian.push(nextNode);
+            }
+        }
+    }
+
+    cout << "\n=== Rute dari '" << mulai << "' ===\n";
+
+    for (auto& simpul : lokasiUtbk) {
+        string tujuan = simpul.first;
+
+        if (tujuan == mulai) continue;
+
+        if (jarak[tujuan] == INT_MAX) {
+            cout << tujuan << ": Tidak terjangkau." << endl;
+            continue;
+        }
+
+        vector<string> path;
+        string temp = tujuan;
+
+        while (temp != mulai) {
+            path.push_back(temp);
+            temp = asal[temp];
+        }
+        path.push_back(mulai);
+
+        cout << tujuan << " (Jarak: " << jarak[tujuan] << ") -> ";
+        for (auto rit = path.rbegin(); rit != path.rend(); ++rit) {
+            cout << *rit;
+            if (rit + 1 != path.rend()) cout << " -> ";
+        }
+        cout << endl;
+    }
+}
+
+int main() {
+    string mulai = "Gerbang Masuk";
+    bfs(mulai);
+    return 0;
+}
